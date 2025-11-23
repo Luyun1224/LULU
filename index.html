@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>敏捷思維導入教學行政 | Hello World 2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00f3ff;
+            --neon-pink: #ff00ff;
+            --bg-dark: #050510;
+            --bg-panel: #0a0a1f;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #e0e0e0;
+            font-family: 'Share Tech Mono', 'Noto Sans TC', monospace;
+            overflow-x: hidden;
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        /* Fonts */
+        .font-cyber { font-family: 'Orbitron', sans-serif; }
+        .font-mono { font-family: 'Share Tech Mono', monospace; }
+
+        /* Neon Glows */
+        .glow-text-cyan { text-shadow: 0 0 5px var(--neon-cyan), 0 0 10px var(--neon-cyan); }
+        .glow-text-pink { text-shadow: 0 0 5px var(--neon-pink), 0 0 10px var(--neon-pink); }
+        
+        .cyber-border-cyan {
+            border: 1px solid var(--neon-cyan);
+            box-shadow: 0 0 5px var(--neon-cyan), inset 0 0 10px rgba(0, 243, 255, 0.2);
+        }
+        .cyber-border-pink {
+            border: 1px solid var(--neon-pink);
+            box-shadow: 0 0 5px var(--neon-pink), inset 0 0 10px rgba(255, 0, 255, 0.2);
+        }
+
+        /* Cyberpunk Shape (Clipped Corners) */
+        .clip-corner {
+            clip-path: polygon(
+                15px 0, 100% 0, 
+                100% calc(100% - 15px), calc(100% - 15px) 100%, 
+                0 100%, 0 15px
+            );
+        }
+
+        /* Glitch Effect Animation */
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+        .glitch-hover:hover {
+            animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+            color: var(--neon-pink);
+        }
+
+        /* Scanline Overlay */
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0.3;
+        }
+
+        /* Form Inputs */
+        .cyber-input {
+            background: rgba(0, 20, 40, 0.6);
+            border: 1px solid #333;
+            border-left: 3px solid var(--neon-cyan);
+            transition: all 0.3s;
+        }
+        .cyber-input:focus {
+            outline: none;
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+            background: rgba(0, 243, 255, 0.05);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--neon-cyan); border-radius: 4px; }
+
+        /* Radio Button Customization */
+        .radio-hidden { display: none; }
+        .radio-label {
+            cursor: pointer;
+            transition: all 0.3s;
+            opacity: 0.6;
+        }
+        .radio-hidden:checked + .radio-label {
+            opacity: 1;
+            background: rgba(255, 0, 255, 0.2);
+            border: 1px solid var(--neon-pink);
+            box-shadow: 0 0 10px var(--neon-pink);
+            color: #fff;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center py-10 px-4 relative">
+
+    <!-- Scanline Overlay -->
+    <div class="scanlines"></div>
+
+    <!-- Main Container -->
+    <main class="w-full max-w-4xl relative z-10">
+        
+        <!-- Header Section -->
+        <header class="mb-10 text-center relative">
+            <div class="absolute -top-10 left-0 w-full h-full bg-cyan-500 opacity-5 blur-3xl pointer-events-none"></div>
+            <h2 class="text-cyan-400 tracking-[0.5em] text-xs font-mono mb-2 typing-effect">SYSTEM_READY // 2025.11.30</h2>
+            <h1 class="font-cyber text-4xl md:text-6xl font-bold text-white mb-2 uppercase tracking-wider glitch-hover" data-text="敏捷思維">
+                敏捷思維<span class="text-pink-500">導入</span>教學行政
+            </h1>
+            <p class="text-gray-400 font-mono text-sm md:text-base mt-2 border-t border-b border-gray-700 py-2 inline-block">
+                HELLO WORLD 2025 開發者大會心得分享暨實務研討會
+            </p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- LEFT COLUMN: Info & Agenda -->
+            <div class="lg:col-span-1 space-y-6">
+                
+                <!-- Info Box -->
+                <div class="cyber-box bg-[#0a0a1f] p-6 clip-corner border-l-4 border-cyan-400 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-2 opacity-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="font-cyber text-xl text-cyan-400 mb-4 border-b border-gray-700 pb-2">MISSION_BRIEF</h3>
+                    
+                    <div class="space-y-4 text-sm font-mono text-gray-300">
+                        <div>
+                            <span class="text-pink-500 font-bold block text-xs tracking-widest">OBJECTIVE</span>
+                            <p>分享「敏捷開發 (Agile)」精神，探討應用於教學部行政、QCC、OSCE 專案管理，提升團隊效率。</p>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <div class="flex items-center">
+                                <span class="w-4 h-4 mr-2 bg-cyan-900 rounded-full border border-cyan-500 flex items-center justify-center text-[10px]">T</span>
+                                <span>2025.11.30 (日)</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-4 h-4 mr-2 bg-cyan-900 rounded-full border border-cyan-500 flex items-center justify-center text-[10px]">C</span>
+                                <span>14:00 - 17:00</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-4 h-4 mr-2 bg-cyan-900 rounded-full border border-cyan-500 flex items-center justify-center text-[10px]">L</span>
+                                <span>第五醫療大樓 5F 552 會議室</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agenda Box -->
+                <div class="cyber-box bg-[#0a0a1f] p-6 clip-corner border-l-4 border-pink-500">
+                    <h3 class="font-cyber text-xl text-pink-500 mb-4 border-b border-gray-700 pb-2">DATA_LOGS (AGENDA)</h3>
+                    
+                    <div class="relative pl-4 border-l border-gray-700 space-y-6 font-mono text-sm">
+                        <!-- Item -->
+                        <div class="relative">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-cyan-400 rounded-full shadow-[0_0_10px_#00f3ff]"></div>
+                            <span class="text-cyan-400 font-bold">14:00</span>
+                            <h4 class="text-white font-bold">報到與暖身 (Check-in)</h4>
+                            <p class="text-xs text-gray-500 mt-1">破冰遊戲、認識夥伴。</p>
+                        </div>
+                        <!-- Item -->
+                        <div class="relative">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-gray-700 rounded-full border border-gray-500"></div>
+                            <span class="text-cyan-400 font-bold">14:15</span>
+                            <h4 class="text-white font-bold">Session 1: 擁抱變化</h4>
+                            <p class="text-xs text-gray-500 mt-1">Agile 解決行政痛點。</p>
+                        </div>
+                        <!-- Item -->
+                        <div class="relative">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-pink-500 rounded-full shadow-[0_0_5px_#ff00ff]"></div>
+                            <span class="text-pink-500 font-bold">15:00</span>
+                            <h4 class="text-white font-bold">Break (大腦充電)</h4>
+                        </div>
+                        <!-- Item -->
+                        <div class="relative">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-gray-700 rounded-full border border-gray-500"></div>
+                            <span class="text-cyan-400 font-bold">15:10</span>
+                            <h4 class="text-white font-bold">Session 2: 實務案例</h4>
+                            <p class="text-xs text-gray-500 mt-1">看板 (Kanban) 與迭代應用。</p>
+                        </div>
+                         <!-- Item -->
+                         <div class="relative">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-gray-700 rounded-full border border-gray-500"></div>
+                            <span class="text-cyan-400 font-bold">16:00</span>
+                            <h4 class="text-white font-bold">Workshop: 實戰演練</h4>
+                            <p class="text-xs text-gray-500 mt-1">站立會議與回顧會議。</p>
+                        </div>
+                         <!-- Item -->
+                         <div class="relative">
+                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-gray-700 rounded-full border border-gray-500"></div>
+                            <span class="text-cyan-400 font-bold">16:40</span>
+                            <h4 class="text-white font-bold">Q&A 總結</h4>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN: Form -->
+            <div class="lg:col-span-2">
+                <div class="bg-[#0a0a1f] bg-opacity-90 p-8 clip-corner cyber-border-cyan relative h-full">
+                    <!-- Decorative corners -->
+                    <div class="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-cyan-400"></div>
+                    <div class="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-cyan-400"></div>
+
+                    <h3 class="font-cyber text-2xl text-white mb-2">USER_REGISTRATION</h3>
+                    <p class="text-gray-500 font-mono text-sm mb-8">:: INPUT DATA TO SECURE ACCESS NODE ::</p>
+
+                    <form id="regForm" class="space-y-6" onsubmit="handleSubmit(event)">
+                        
+                        <!-- Name & Email Row -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="group">
+                                <label class="block text-cyan-400 text-xs font-mono mb-2 tracking-wider group-hover:text-pink-500 transition-colors">> ID_NAME</label>
+                                <input type="text" name="name" required placeholder="請輸入姓名" class="w-full p-3 cyber-input text-white font-mono placeholder-gray-600">
+                            </div>
+                            <div class="group">
+                                <label class="block text-cyan-400 text-xs font-mono mb-2 tracking-wider group-hover:text-pink-500 transition-colors">> COMM_LINK (EMAIL)</label>
+                                <input type="email" name="email" required placeholder="name@example.com" class="w-full p-3 cyber-input text-white font-mono placeholder-gray-600">
+                            </div>
+                        </div>
+
+                        <!-- Unit & Title Row -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="group">
+                                <label class="block text-cyan-400 text-xs font-mono mb-2 tracking-wider group-hover:text-pink-500 transition-colors">> SECTOR (單位)</label>
+                                <input type="text" name="department" placeholder="請輸入服務單位" class="w-full p-3 cyber-input text-white font-mono placeholder-gray-600">
+                            </div>
+                            <div class="group">
+                                <label class="block text-cyan-400 text-xs font-mono mb-2 tracking-wider group-hover:text-pink-500 transition-colors">> CLASS (職稱) *</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <label class="relative">
+                                        <input type="radio" name="job_title" value="醫師" class="radio-hidden" required>
+                                        <span class="radio-label block text-center py-2 border border-gray-600 bg-gray-900 text-gray-400 text-xs hover:border-cyan-400 clip-corner">醫師</span>
+                                    </label>
+                                    <label class="relative">
+                                        <input type="radio" name="job_title" value="護理師" class="radio-hidden">
+                                        <span class="radio-label block text-center py-2 border border-gray-600 bg-gray-900 text-gray-400 text-xs hover:border-cyan-400 clip-corner">護理師</span>
+                                    </label>
+                                    <label class="relative">
+                                        <input type="radio" name="job_title" value="醫事人員" class="radio-hidden">
+                                        <span class="radio-label block text-center py-2 border border-gray-600 bg-gray-900 text-gray-400 text-xs hover:border-cyan-400 clip-corner">醫事人員</span>
+                                    </label>
+                                    <label class="relative">
+                                        <input type="radio" name="job_title" value="行政人員" class="radio-hidden">
+                                        <span class="radio-label block text-center py-2 border border-gray-600 bg-gray-900 text-gray-400 text-xs hover:border-cyan-400 clip-corner">行政人員</span>
+                                    </label>
+                                    <label class="relative col-span-2">
+                                        <input type="radio" name="job_title" value="其他" class="radio-hidden">
+                                        <span class="radio-label block text-center py-2 border border-gray-600 bg-gray-900 text-gray-400 text-xs hover:border-cyan-400 clip-corner">其他</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Snack Toggle -->
+                        <div class="p-4 border border-gray-700 bg-gray-900 bg-opacity-50 clip-corner flex items-center justify-between">
+                            <label class="text-cyan-400 text-sm font-mono">> RATIONS_REQ (茶點需求)?</label>
+                            <div class="flex items-center gap-4">
+                                <label class="flex items-center cursor-pointer gap-2">
+                                    <input type="radio" name="snacks" value="yes" class="accent-cyan-400">
+                                    <span class="text-white text-sm">Yes</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer gap-2">
+                                    <input type="radio" name="snacks" value="no" class="accent-pink-500" checked>
+                                    <span class="text-gray-400 text-sm">No</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Question Textarea -->
+                        <div class="group">
+                            <label class="block text-cyan-400 text-xs font-mono mb-2 tracking-wider group-hover:text-pink-500 transition-colors">> QUERY_LOG (行政痛點/提問)</label>
+                            <textarea name="question" rows="3" placeholder="輸入您遇到的困難或想了解的內容..." class="w-full p-3 cyber-input text-white font-mono placeholder-gray-600 resize-none"></textarea>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="w-full group relative overflow-hidden bg-transparent text-cyan-400 font-cyber font-bold py-4 border border-cyan-400 hover:text-black hover:bg-cyan-400 transition-all duration-300 clip-corner uppercase tracking-widest">
+                            <span class="relative z-10 group-hover:animate-pulse">INITIALIZE_UPLOAD</span>
+                            <div class="absolute inset-0 bg-cyan-400 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300 z-0"></div>
+                        </button>
+
+                        <div class="text-center">
+                             <p class="text-[10px] text-gray-600 font-mono mt-4">
+                                [WARN] 本資料僅供本次研討會聯繫與餐點統計使用。
+                            </p>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-12 border-t border-gray-800 pt-6 pb-10 text-center font-mono text-xs text-gray-500">
+            <div class="flex flex-col md:flex-row justify-center items-center gap-4 mb-2">
+                <span class="px-2 py-1 border border-gray-700 rounded bg-gray-900">ORG: 奇美醫院教學部</span>
+                <span class="px-2 py-1 border border-gray-700 rounded bg-gray-900">CONTACT: 盧英云 (57425)</span>
+            </div>
+            <p>SYSTEM VERSION 2.5.0 | CONNECTED SECURELY</p>
+        </footer>
+
+    </main>
+
+    <!-- Success Modal (Hidden by default) -->
+    <div id="modal" class="fixed inset-0 flex items-center justify-center z-50 hidden bg-black bg-opacity-90 backdrop-blur-sm">
+        <div class="bg-black border-2 border-cyan-400 p-8 max-w-sm w-full clip-corner text-center relative shadow-[0_0_30px_rgba(0,243,255,0.3)]">
+            <h3 class="text-2xl font-cyber text-cyan-400 mb-2 animate-pulse">UPLOAD COMPLETE</h3>
+            <div class="w-full h-1 bg-gray-800 my-4 relative overflow-hidden">
+                <div class="absolute top-0 left-0 h-full bg-pink-500 w-full animate-[glitch_1s_infinite]"></div>
+            </div>
+            <p class="text-gray-300 font-mono text-sm mb-6">Your registration data has been successfully transmitted to the mainframe.</p>
+            <button onclick="closeModal()" class="px-6 py-2 border border-pink-500 text-pink-500 font-mono hover:bg-pink-500 hover:text-black transition-colors clip-corner">
+                ACKNOWLEDGE
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Simple typing effect for the subtitle
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputFields = document.querySelectorAll('input, textarea');
+            inputFields.forEach(input => {
+                input.addEventListener('focus', () => {
+                    playRandomSound();
+                });
+            });
+        });
+
+        // Mock Sound effect (Visual only in this context, functionality stub)
+        function playRandomSound() {
+            // In a real scenario, play a subtle beep here
+            console.log('Beep');
+        }
+
+        function handleSubmit(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            
+            // Button Loading State
+            btn.innerHTML = '<span class="animate-pulse">PROCESSING...</span>';
+            
+            // Simulate Network Delay
+            setTimeout(() => {
+                document.getElementById('modal').classList.remove('hidden');
+                btn.innerText = originalText;
+                e.target.reset();
+            }, 1000);
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
