@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>戰情室 | 報名即時監控</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-yellow: #ffee00;
+            --bg-dark: #050510;
+            --bg-panel: #0a0a1f;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #e0e0e0;
+            font-family: 'Share Tech Mono', 'Noto Sans TC', monospace;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.05) 0%, transparent 50%),
+                linear-gradient(0deg, rgba(0,0,0,0.8) 0%, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.8) 0%, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+        }
+
+        .font-cyber { font-family: 'Orbitron', sans-serif; }
+        .font-mono { font-family: 'Share Tech Mono', monospace; }
+
+        /* Panels */
+        .cyber-panel {
+            background: rgba(10, 10, 31, 0.7);
+            border: 1px solid #333;
+            backdrop-filter: blur(5px);
+            position: relative;
+        }
+        .border-cyan { border-color: var(--neon-cyan); box-shadow: 0 0 10px rgba(0, 243, 255, 0.2), inset 0 0 20px rgba(0, 243, 255, 0.05); }
+        .border-pink { border-color: var(--neon-pink); box-shadow: 0 0 10px rgba(255, 0, 255, 0.2), inset 0 0 20px rgba(255, 0, 255, 0.05); }
+
+        /* Clip Corners */
+        .clip-top-right { clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%); }
+        .clip-bot-left { clip-path: polygon(0 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px)); }
+
+        /* Loading Animation */
+        .loader-bar {
+            width: 100%;
+            height: 2px;
+            background: #333;
+            position: relative;
+            overflow: hidden;
+        }
+        .loader-bar::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; height: 100%; width: 50%;
+            background: var(--neon-cyan);
+            animation: scan 1.5s infinite linear;
+        }
+        @keyframes scan {
+            0% { left: -50%; }
+            100% { left: 100%; }
+        }
+
+        /* Ticker */
+        .ticker-wrap {
+            width: 100%;
+            overflow: hidden;
+            background: rgba(0,0,0,0.3);
+            border-top: 1px solid #333;
+            border-bottom: 1px solid #333;
+            white-space: nowrap;
+        }
+        .ticker-move {
+            display: inline-block;
+            animation: ticker 20s linear infinite;
+        }
+        @keyframes ticker {
+            0% { transform: translate3d(100%, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+
+        /* Count Up Animation class */
+        .counter { font-variant-numeric: tabular-nums; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-4 md:p-8">
+
+    <!-- Config Overlay (Hidden after set) -->
+    <div id="config-modal" class="fixed inset-0 z-50 bg-black bg-opacity-95 flex items-center justify-center">
+        <div class="w-full max-w-md p-8 border border-cyan-400 clip-top-right bg-gray-900">
+            <h2 class="text-cyan-400 font-cyber text-2xl mb-4">SYSTEM_INIT</h2>
+            <p class="text-gray-400 text-sm font-mono mb-4">請輸入 Apps Script 網頁應用程式網址以連接資料庫：</p>
+            <input type="text" id="api-url-input" class="w-full bg-black border border-gray-600 p-3 text-white font-mono mb-4 focus:border-cyan-400 outline-none" placeholder="https://script.google.com/macros/s/.../exec">
+            <button onclick="initSystem()" class="w-full bg-cyan-900 text-cyan-400 border border-cyan-400 py-3 font-cyber hover:bg-cyan-400 hover:text-black transition-colors">CONNECT</button>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="flex justify-between items-end mb-8 border-b border-gray-800 pb-4">
+        <div>
+            <div class="flex items-center gap-3 mb-1">
+                <div class="text-xs text-pink-500 font-mono tracking-widest">LIVE_DATA_FEED //</div>
+                <div id="connection-status" class="text-xs text-cyan-500 font-mono tracking-widest">CONNECTING...</div>
+            </div>
+            <h1 class="text-4xl md:text-5xl text-white font-cyber font-bold tracking-tighter">
+                DASHBOARD <span class="text-cyan-400 text-2xl align-top">v2.1</span>
+            </h1>
+        </div>
+        <div class="text-right hidden md:block">
+            <div id="clock" class="text-2xl font-mono text-cyan-400">00:00:00</div>
+            <div class="text-xs text-gray-500">SYSTEM TIME</div>
+        </div>
+    </header>
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        
+        <!-- KPI Card 1: Total Users -->
+        <div class="cyber-panel border-cyan p-6 clip-top-right col-span-1 flex flex-col justify-between h-40 relative overflow-hidden">
+            <div class="absolute -right-4 -top-4 text-8xl text-cyan-400 opacity-10 font-cyber z-0">01</div>
+            <div class="relative z-10">
+                <h3 class="text-gray-400 font-mono text-sm">TOTAL_REGISTRATIONS</h3>
+                <div class="text-5xl text-white font-cyber font-bold mt-2 counter" id="total-count">0</div>
+            </div>
+            <div class="w-full h-1 bg-gray-800 mt-4"><div class="h-full bg-cyan-400" style="width: 75%"></div></div>
+        </div>
+
+        <!-- KPI Card 2: Snack Rate -->
+        <div class="cyber-panel border-pink p-6 clip-bot-left col-span-1 flex flex-col justify-between h-40 relative overflow-hidden">
+             <div class="absolute -right-4 -top-4 text-8xl text-pink-500 opacity-10 font-cyber z-0">02</div>
+            <div class="relative z-10">
+                <h3 class="text-gray-400 font-mono text-sm">SNACK_REQUESTS</h3>
+                <div class="text-5xl text-white font-cyber font-bold mt-2 counter" id="snack-count">0</div>
+            </div>
+            <div class="text-xs text-pink-400 font-mono text-right mt-2" id="snack-percent">0% of Total</div>
+        </div>
+
+        <!-- Chart 1: Job Distribution -->
+        <div class="cyber-panel border-cyan p-4 col-span-1 md:col-span-1 h-64 md:h-auto flex flex-col">
+            <h3 class="text-cyan-400 font-mono text-xs mb-2">> CLASS_DISTRIBUTION</h3>
+            <div class="flex-grow relative">
+                <canvas id="jobChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 2: Department Distribution -->
+        <div class="cyber-panel border-pink p-4 col-span-1 md:col-span-1 h-64 md:h-auto flex flex-col">
+            <h3 class="text-pink-500 font-mono text-xs mb-2">> SECTOR_ANALYSIS</h3>
+            <div class="flex-grow relative">
+                <canvas id="deptChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Section: Recent Logs & Status -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow">
+        
+        <!-- Recent Registrations Table -->
+        <div class="cyber-panel border-cyan col-span-2 p-0 clip-top-right flex flex-col h-96">
+            <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-cyan-900 bg-opacity-20">
+                <h3 class="text-cyan-400 font-mono">> INCOMING_DATA_STREAM</h3>
+                <span class="text-xs text-cyan-300 animate-pulse">● LIVE</span>
+            </div>
+            <div class="overflow-y-auto custom-scrollbar flex-grow p-2">
+                <table class="w-full text-left text-sm font-mono">
+                    <thead class="text-gray-500 border-b border-gray-800">
+                        <tr>
+                            <th class="p-2">TIME</th>
+                            <th class="p-2">ID_NAME</th>
+                            <th class="p-2">SECTOR</th>
+                            <th class="p-2">CLASS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-table-body" class="text-gray-300">
+                        <!-- Rows injected via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Status / Q&A Feed -->
+        <div class="cyber-panel border-pink col-span-1 p-4 h-96 flex flex-col">
+             <h3 class="text-pink-500 font-mono mb-4">> QUERY_LOGS (Recent Questions)</h3>
+             <div class="space-y-3 overflow-y-auto flex-grow custom-scrollbar" id="questions-list">
+                 <!-- Questions injected via JS -->
+                 <div class="text-gray-600 text-xs text-center mt-10">SCANNING FOR QUERIES...</div>
+             </div>
+        </div>
+    </div>
+
+    <!-- Footer Ticker -->
+    <div class="fixed bottom-0 left-0 w-full">
+        <div class="loader-bar" id="loading-bar"></div>
+        <div class="ticker-wrap py-1 bg-black">
+            <div class="ticker-move font-mono text-xs text-cyan-600" id="ticker-content">
+                // SYSTEM_READY // WAITING FOR DATA CONNECTION // AGIILE_EVENT_2025 //
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let CHART_INSTANCES = {};
+        let API_URL = localStorage.getItem('agile_dashboard_api') || "";
+        let isDemoMode = false;
+
+        // Default Mock Data for Cyberpunk Theme
+        function getMockData() {
+            const sectors = ["教學部", "內科部", "外科部", "護理部", "行政管理", "急診醫學部"];
+            const jobs = ["醫師", "護理師", "醫事人員", "行政人員", "其他"];
+            const names = ["Cipher_One", "Neo_W", "Trinity_L", "Morpheus_K", "Ghost_01", "V_Cyber", "David_M", "Lucy_K", "Maine_C", "Rebecca_S"];
+            const questions = [
+                "如何將 Daily Standup 應用在輪班制?",
+                "QCC 的看板管理是否有數位化工具推薦?",
+                "",
+                "敏捷流程與現有 ISO 流程衝突怎麼辦?",
+                "", "", "OSCE 考官排程可以用 Kanban 嗎?"
+            ];
+            
+            let data = [];
+            // Generate 35 fake entries
+            for(let i=0; i<35; i++) {
+                let date = new Date();
+                date.setMinutes(date.getMinutes() - Math.floor(Math.random() * 3000));
+                
+                data.push({
+                    timestamp: date.toISOString(),
+                    name: names[Math.floor(Math.random() * names.length)],
+                    department: sectors[Math.floor(Math.random() * sectors.length)],
+                    job_title: jobs[Math.floor(Math.random() * jobs.length)],
+                    snacks: Math.random() > 0.4 ? "yes" : "no",
+                    question: Math.random() > 0.7 ? questions[Math.floor(Math.random() * questions.length)] : ""
+                });
+            }
+            return data.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+        }
+
+        // Check if API URL is already saved
+        if (API_URL) {
+            document.getElementById('config-modal').classList.add('hidden');
+            document.getElementById('api-url-input').value = API_URL;
+            fetchData();
+            setInterval(fetchData, 30000); // Refresh every 30s
+        } else {
+            // Default URL placeholder
+            const defaultUrl = "https://script.google.com/macros/s/AKfycbwRDMGdFb6IJWXT3Rpu_iZDarjQmw-kHW_Dx61OgI3w7yhIlywlKU37y50O4gOeKs_i/exec"; 
+            document.getElementById('api-url-input').value = defaultUrl;
+        }
+
+        function initSystem() {
+            const url = document.getElementById('api-url-input').value.trim();
+            if (!url) return alert("Please enter a valid URL");
+            
+            API_URL = url;
+            localStorage.setItem('agile_dashboard_api', API_URL);
+            document.getElementById('config-modal').classList.add('hidden');
+            fetchData();
+            setInterval(fetchData, 30000);
+        }
+
+        // Clock
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString('en-GB');
+        }, 1000);
+
+        async function fetchData() {
+            document.getElementById('loading-bar').style.opacity = '1';
+            
+            try {
+                // 使用 GET 請求，並設定 redirect: follow 以處理 GAS 的 302 跳轉
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    redirect: 'follow'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const json = await response.json();
+                
+                if (json.status === 'success' || json.data) {
+                    const data = json.data || json; 
+                    setConnectionStatus("SECURE_CONNECTION", "text-cyan-400");
+                    updateDashboard(data);
+                    isDemoMode = false;
+                } else {
+                    throw new Error("Invalid Data Structure");
+                }
+            } catch (e) {
+                console.warn("無法連線至 Apps Script，啟動展示模式 (Demo Mode)。錯誤訊息:", e);
+                setConnectionStatus("!! CONNECTION_LOST :: DEMO_MODE_ACTIVE !!", "text-red-500 animate-pulse");
+                
+                // Load Mock Data for fallback visualization
+                if(!isDemoMode) {
+                    updateDashboard(getMockData());
+                    isDemoMode = true;
+                }
+            } finally {
+                document.getElementById('loading-bar').style.opacity = '0.2';
+            }
+        }
+
+        function setConnectionStatus(text, colorClass) {
+            const el = document.getElementById('connection-status');
+            el.innerText = text;
+            el.className = `text-xs font-mono tracking-widest ${colorClass}`;
+        }
+
+        function updateDashboard(data) {
+            // 1. KPI Counters
+            animateValue("total-count", parseInt(document.getElementById("total-count").innerText), data.length, 1000);
+            
+            const snackCount = data.filter(r => r.snacks === 'yes').length;
+            animateValue("snack-count", parseInt(document.getElementById("snack-count").innerText), snackCount, 1000);
+            document.getElementById("snack-percent").innerText = Math.round((snackCount / data.length) * 100) + "% of Total";
+
+            // 2. Process Charts Data
+            const jobs = {};
+            const depts = {};
+            
+            data.forEach(row => {
+                // Jobs
+                const job = row.job_title || "Other";
+                jobs[job] = (jobs[job] || 0) + 1;
+                
+                // Depts
+                const dept = row.department || "Unknown";
+                depts[dept] = (depts[dept] || 0) + 1;
+            });
+
+            renderCharts(jobs, depts);
+
+            // 3. Update Table (Last 20)
+            const tbody = document.getElementById('log-table-body');
+            tbody.innerHTML = '';
+            // Sort by timestamp descending (assuming timestamp is first)
+            // If real data, handle ISO string dates
+            const sortedData = [...data].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 20);
+            
+            sortedData.forEach(row => {
+                const date = new Date(row.timestamp);
+                const timeStr = isNaN(date.getTime()) ? "--:--" : date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
+                
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-gray-800 hover:bg-cyan-900 hover:bg-opacity-20 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-2 text-cyan-600">${timeStr}</td>
+                    <td class="p-2 text-white font-bold">${row.name}</td>
+                    <td class="p-2 text-gray-400">${row.department}</td>
+                    <td class="p-2 text-pink-400 text-xs border border-pink-900 px-1 rounded inline-block mt-1">${row.job_title}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // 4. Update Questions Feed
+            const qList = document.getElementById('questions-list');
+            qList.innerHTML = '';
+            const questions = data.filter(r => r.question && r.question.length > 1).reverse().slice(0, 10);
+            
+            if(questions.length === 0) {
+                 qList.innerHTML = '<div class="text-gray-600 text-xs text-center mt-10">NO QUERIES DETECTED</div>';
+            } else {
+                questions.forEach(row => {
+                    const div = document.createElement('div');
+                    div.className = "bg-pink-900 bg-opacity-10 border-l-2 border-pink-500 p-2 text-xs";
+                    div.innerHTML = `
+                        <div class="text-pink-300 font-bold mb-1">${row.name} (${row.department})</div>
+                        <div class="text-gray-300">"${row.question}"</div>
+                    `;
+                    qList.appendChild(div);
+                });
+            }
+
+            // 5. Update Ticker
+            const tickerText = sortedData.slice(0, 5).map(r => `[NEW USER: ${r.name} // ${r.department}]`).join(" ... ");
+            document.getElementById('ticker-content').innerText = tickerText + " ... SYSTEM MONITORING ...";
+        }
+
+        function renderCharts(jobs, depts) {
+            const ctxJob = document.getElementById('jobChart').getContext('2d');
+            const ctxDept = document.getElementById('deptChart').getContext('2d');
+
+            // Chart Colors
+            const colors = ['#00f3ff', '#ff00ff', '#ffee00', '#ffffff', '#555555'];
+            
+            // Job Pie Chart
+            if (CHART_INSTANCES.job) CHART_INSTANCES.job.destroy();
+            CHART_INSTANCES.job = new Chart(ctxJob, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(jobs),
+                    datasets: [{
+                        data: Object.values(jobs),
+                        backgroundColor: colors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { color: '#aaa', font: { family: 'Share Tech Mono' } } }
+                    }
+                }
+            });
+
+            // Dept Bar Chart
+            if (CHART_INSTANCES.dept) CHART_INSTANCES.dept.destroy();
+            CHART_INSTANCES.dept = new Chart(ctxDept, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(depts),
+                    datasets: [{
+                        label: 'Users',
+                        data: Object.values(depts),
+                        backgroundColor: '#ff00ff',
+                        borderColor: '#ff00ff',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { grid: { color: '#333' }, ticks: { color: '#aaa' } },
+                        x: { grid: { display: false }, ticks: { color: '#aaa', font: { size: 10 } } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // Utility: Count Up Animation
+        function animateValue(id, start, end, duration) {
+            if (start === end) return;
+            const range = end - start;
+            let current = start;
+            const increment = end > start ? 1 : -1;
+            const stepTime = Math.abs(Math.floor(duration / range));
+            const obj = document.getElementById(id);
+            const timer = setInterval(function() {
+                current += increment;
+                obj.innerHTML = current;
+                if (current == end) {
+                    clearInterval(timer);
+                }
+            }, Math.max(stepTime, 10)); // min 10ms
+        }
+    </script>
+</body>
+</html>
